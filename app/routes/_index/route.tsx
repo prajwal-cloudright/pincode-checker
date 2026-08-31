@@ -21,34 +21,48 @@ export default function App() {
   return (
     <div className={styles.index}>
       <div className={styles.content}>
-        <h1 className={styles.heading}>A short heading about [your app]</h1>
+        <h1 className={styles.heading}>
+          Pincode Checker - AUTO DEPLOY TEST
+        </h1>
+
         <p className={styles.text}>
-          A tagline about [your app] that describes your value proposition.
+          This UI was automatically deployed through GitHub Actions.
         </p>
+
         {showForm && (
           <Form className={styles.form} method="post" action="/auth/login">
             <label className={styles.label}>
               <span>Shop domain</span>
-              <input className={styles.input} type="text" name="shop" />
+
+              <input
+                className={styles.input}
+                type="text"
+                name="shop"
+              />
+
               <span>e.g: my-shop-domain.myshopify.com</span>
             </label>
+
             <button className={styles.button} type="submit">
               Log in
             </button>
           </Form>
         )}
+
         <ul className={styles.list}>
           <li>
-            <strong>Product feature</strong>. Some detail about your feature and
-            its benefit to your customer.
+            <strong>Automatic Deployment</strong>. Changes are automatically
+            built and deployed after pushing code to GitHub.
           </li>
+
           <li>
-            <strong>Product feature</strong>. Some detail about your feature and
-            its benefit to your customer.
+            <strong>Docker Deployment</strong>. The application is packaged
+            into a Docker image and deployed to AWS.
           </li>
+
           <li>
-            <strong>Product feature</strong>. Some detail about your feature and
-            its benefit to your customer.
+            <strong>GitHub Actions</strong>. GitHub Actions handles the
+            deployment process automatically.
           </li>
         </ul>
       </div>
