@@ -31,9 +31,9 @@ jobs:
       - name: Tag Docker image
         run: |
           docker tag pincode-checker:latest \
-            ${{ steps.login-ecr.outputs.registry }}/delivery-checker:latest
+            ${{ steps.login-ecr.outputs.registry }}/pincode-checker:latest
 
       - name: Push Docker image to ECR
         run: |
           docker push \
-            ${{ steps.login-ecr.outputs.registry }}/delivery-checker:latest
+            ${{ steps.login-ecr.outputs.registry }}/pincode-checker:latest
