@@ -11,9 +11,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+      # 1. Checkout GitHub repository
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 2. Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -21,24 +24,29 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      # 3. Login to Amazon ECR
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      # 4. Build Docker image
       - name: Build Docker image
         run: |
           docker build -t pincode-checker .
 
+      # 5. Tag Docker image
       - name: Tag Docker image
         run: |
           docker tag pincode-checker:latest \
             ${{ steps.login-ecr.outputs.registry }}/pincode-checker:latest
 
+      # 6. Push Docker image to ECR
       - name: Push Docker image to ECR
         run: |
           docker push \
             ${{ steps.login-ecr.outputs.registry }}/pincode-checker:latest
 
+      # 7. Deploy Docker image to EC2 using SSM
       - name: Deploy Docker to EC2
         shell: bash
         run: |
@@ -59,33 +67,34 @@ jobs:
 
           echo "Docker deployment completed successfully."
 
+      # 8. Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
+      # 9. Enable pnpm
       - name: Enable pnpm
         run: |
           corepack enable
           corepack prepare pnpm@latest --activate
 
+      # 10. Install project dependencies
       - name: Install dependencies
         run: |
           pnpm install --no-frozen-lockfile
 
-      - name: Install Shopify CLI
-        run: |
-          pnpm add --global @shopify/cli@latest
-
+      # 11. Deploy Shopify app configuration and extensions
       - name: Deploy Shopify app and extensions
         env:
           SHOPIFY_APP_AUTOMATION_TOKEN: ${{ secrets.SHOPIFY_APP_AUTOMATION_TOKEN }}
           COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
         run: |
-          shopify app deploy \
+          npx --yes @shopify/cli@latest app deploy \
             --allow-updates \
             --source-control-url "$COMMIT_URL"
 
+      # 12. Deployment completed
       - name: Deployment complete
         run: |
           echo "=========================================="
