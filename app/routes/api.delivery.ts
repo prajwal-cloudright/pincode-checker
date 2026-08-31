@@ -3,8 +3,30 @@ import { data } from "react-router";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
-
   const pincode = url.searchParams.get("pincode")?.trim();
+
+  /*
+   * CORS headers
+   *
+   * Shopify storefronts run on a different domain,
+   * so the browser must be allowed to call this API.
+   */
+  const headers = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Content-Type": "application/json",
+  };
+
+  /*
+   * Handle browser CORS preflight request
+   */
+  if (request.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers,
+    });
+  }
 
   /*
    * Validate pincode
@@ -17,15 +39,16 @@ export async function loader({ request }: LoaderFunctionArgs) {
       },
       {
         status: 400,
+        headers,
       },
     );
   }
 
   try {
     /*
-     * Call India Post API from the backend.
+     * Backend calls India Post API.
      *
-     * The Shopify frontend does NOT call India Post directly.
+     * Shopify does NOT call India Post directly.
      */
     const indiaPostUrl =
       "https://api.postalpincode.in/pincode/" +
@@ -50,6 +73,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         },
         {
           status: 502,
+          headers,
         },
       );
     }
@@ -79,6 +103,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         },
         {
           status: 404,
+          headers,
         },
       );
     }
@@ -89,20 +114,25 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const postOffice = apiData[0].PostOffice[0];
 
     /*
-     * Return only the information required by
-     * the Shopify extension.
+     * Return clean response to Shopify.
      */
-    return data({
-      success: true,
-      message: "Delivery is Available",
-      data: {
-        pincode: postOffice.Pincode || pincode,
-        postOffice: postOffice.Name || "N/A",
-        district: postOffice.District || "N/A",
-        state: postOffice.State || "N/A",
-        deliveryStatus: postOffice.DeliveryStatus || "N/A",
+    return data(
+      {
+        success: true,
+        message: "Delivery is Available",
+        data: {
+          pincode: postOffice.Pincode || pincode,
+          postOffice: postOffice.Name || "N/A",
+          district: postOffice.District || "N/A",
+          state: postOffice.State || "N/A",
+          deliveryStatus: postOffice.DeliveryStatus || "N/A",
+        },
       },
-    });
+      {
+        status: 200,
+        headers,
+      },
+    );
   } catch (error) {
     console.error("Pincode API error:", error);
 
@@ -113,6 +143,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       },
       {
         status: 500,
+        headers,
       },
     );
   }
