@@ -2,8 +2,8 @@
 <div class="pincode-checker">
 
   <div class="pincode-header">
-    <h3>Check Delivery Availability</h3>
-    <p>Enter your pincode to check delivery availability.</p>
+    <h3>Check Delivery Availability – AUTO DEPLOY</h3>
+    <p>Enter your pincode below to check delivery availability instantly.</p>
   </div>
 
   <div class="pincode-field">
@@ -14,7 +14,7 @@
       type="text"
       maxlength="6"
       inputmode="numeric"
-      placeholder="Enter 6-digit Pincode"
+      placeholder="Enter your pincode"
       autocomplete="postal-code"
     >
   </div>
@@ -23,7 +23,7 @@
     id="check-btn"
     type="button"
   >
-    Check Delivery
+    Check Delivery Now
   </button>
 
   <div id="result"></div>
@@ -89,6 +89,7 @@
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
+  transition: opacity 0.2s ease;
 }
 
 #check-btn:hover {
@@ -216,16 +217,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
       /*
        * Convert response to JSON
-       *
-       * API response format:
-       *
-       * [
-       *   {
-       *     "Message": "...",
-       *     "Status": "Success",
-       *     "PostOffice": [...]
-       *   }
-       * ]
        */
       const apiData = await response.json();
 
@@ -343,7 +334,7 @@ document.addEventListener("DOMContentLoaded", function () {
        * Enable button again
        */
       btn.disabled = false;
-      btn.innerText = "Check Delivery";
+      btn.innerText = "Check Delivery Now";
 
     }
 
