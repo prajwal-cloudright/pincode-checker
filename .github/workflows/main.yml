@@ -1,4 +1,4 @@
-name: Build and Push Docker Image
+name: Build and Deploy
 
 on:
   push:
@@ -37,3 +37,28 @@ jobs:
         run: |
           docker push \
             ${{ steps.login-ecr.outputs.registry }}/pincode-checker:latest
+
+      - name: Deploy to EC2
+        run: |
+          COMMAND_ID=$(aws ssm send-command \
+            --region ${{ secrets.AWS_REGION }} \
+            --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
+            --document-name "AWS-RunShellScript" \
+            --parameters 'commands=[
+              "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 864899874068.dkr.ecr.us-east-1.amazonaws.com",
+              "docker pull 864899874068.dkr.ecr.us-east-1.amazonaws.com/pincode-checker:latest",
+              "docker stop pincode-checker || true",
+              "docker rm pincode-checker || true",
+              "docker run -d --name pincode-checker --env-file /home/ubuntu/pincode-checker.env -p 3000:3000 --restart unless-stopped 864899874068.dkr.ecr.us-east-1.amazonaws.com/pincode-checker:latest"
+            ]' \
+            --query "Command.CommandId" \
+            --output text)
+
+          echo "SSM Command ID: $COMMAND_ID"
+
+          aws ssm wait command-executed \
+            --region ${{ secrets.AWS_REGION }} \
+            --command-id "$COMMAND_ID" \
+            --instance-id "${{ secrets.EC2_INSTANCE_ID }}"
+
+          echo "Deployment completed successfully."
