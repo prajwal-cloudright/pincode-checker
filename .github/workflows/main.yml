@@ -1,4 +1,3 @@
-```yaml
 name: Build and Deploy
 
 on:
@@ -8,11 +7,12 @@ on:
 
 jobs:
   build-and-push:
+    name: Build Docker and Deploy to AWS
     runs-on: ubuntu-latest
 
     steps:
       # --------------------------------------------------
-      # 1. Checkout GitHub repository
+      # 1. Checkout repository
       # --------------------------------------------------
       - name: Checkout code
         uses: actions/checkout@v4
@@ -86,13 +86,12 @@ jobs:
           echo "EC2 Docker deployment completed successfully."
 
       # --------------------------------------------------
-      # 8. Setup Node.js for Shopify CLI
+      # 8. Setup Node.js
       # --------------------------------------------------
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
 
       # --------------------------------------------------
       # 9. Enable pnpm
@@ -103,7 +102,7 @@ jobs:
           corepack prepare pnpm@latest --activate
 
       # --------------------------------------------------
-      # 10. Install project dependencies
+      # 10. Install dependencies
       # --------------------------------------------------
       - name: Install dependencies
         run: |
@@ -117,7 +116,7 @@ jobs:
           pnpm add --global @shopify/cli@latest
 
       # --------------------------------------------------
-      # 12. Deploy Shopify app configuration and extensions
+      # 12. Deploy Shopify configuration and extensions
       # --------------------------------------------------
       - name: Deploy Shopify app
         env:
@@ -133,9 +132,8 @@ jobs:
       # --------------------------------------------------
       - name: Deployment complete
         run: |
-          echo "======================================"
-          echo "AWS deployment completed."
-          echo "Shopify app deployment completed."
+          echo "=========================================="
+          echo "AWS Docker deployment completed."
+          echo "Shopify extension deployment completed."
           echo "Commit: ${{ github.sha }}"
-          echo "======================================"
-```
+          echo "=========================================="
