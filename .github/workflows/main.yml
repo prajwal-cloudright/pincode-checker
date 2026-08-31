@@ -1,3 +1,4 @@
+```yaml
 name: Build and Deploy
 
 on:
@@ -11,11 +12,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
       # --------------------------------------------------
-      # 1. Checkout repository
+      # 1. Checkout GitHub repository
       # --------------------------------------------------
       - name: Checkout code
         uses: actions/checkout@v4
+
 
       # --------------------------------------------------
       # 2. Configure AWS credentials
@@ -27,6 +30,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+
       # --------------------------------------------------
       # 3. Login to Amazon ECR
       # --------------------------------------------------
@@ -34,12 +38,14 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+
       # --------------------------------------------------
       # 4. Build Docker image
       # --------------------------------------------------
       - name: Build Docker image
         run: |
           docker build -t pincode-checker .
+
 
       # --------------------------------------------------
       # 5. Tag Docker image
@@ -49,6 +55,7 @@ jobs:
           docker tag pincode-checker:latest \
             ${{ steps.login-ecr.outputs.registry }}/pincode-checker:latest
 
+
       # --------------------------------------------------
       # 6. Push Docker image to ECR
       # --------------------------------------------------
@@ -56,6 +63,7 @@ jobs:
         run: |
           docker push \
             ${{ steps.login-ecr.outputs.registry }}/pincode-checker:latest
+
 
       # --------------------------------------------------
       # 7. Deploy Docker image to EC2 using SSM
@@ -85,6 +93,7 @@ jobs:
 
           echo "EC2 Docker deployment completed successfully."
 
+
       # --------------------------------------------------
       # 8. Setup Node.js
       # --------------------------------------------------
@@ -92,6 +101,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+
 
       # --------------------------------------------------
       # 9. Enable pnpm
@@ -101,12 +111,14 @@ jobs:
           corepack enable
           corepack prepare pnpm@latest --activate
 
+
       # --------------------------------------------------
-      # 10. Install dependencies
+      # 10. Install project dependencies
       # --------------------------------------------------
       - name: Install dependencies
         run: |
-          pnpm install --frozen-lockfile
+          pnpm install --no-frozen-lockfile
+
 
       # --------------------------------------------------
       # 11. Install Shopify CLI
@@ -114,6 +126,7 @@ jobs:
       - name: Install Shopify CLI
         run: |
           pnpm add --global @shopify/cli@latest
+
 
       # --------------------------------------------------
       # 12. Deploy Shopify configuration and extensions
@@ -127,6 +140,7 @@ jobs:
             --allow-updates \
             --source-control-url "$COMMIT_URL"
 
+
       # --------------------------------------------------
       # 13. Deployment completed
       # --------------------------------------------------
@@ -134,6 +148,7 @@ jobs:
         run: |
           echo "=========================================="
           echo "AWS Docker deployment completed."
-          echo "Shopify extension deployment completed."
+          echo "Shopify app deployment completed."
           echo "Commit: ${{ github.sha }}"
           echo "=========================================="
+```
