@@ -30,7 +30,18 @@ jobs:
       - name: Install Shopify CLI
         run: pnpm add --global @shopify/cli@4.7.0
 
+      - name: Check Shopify token
+        env:
+          SHOPIFY_CLI_PARTNERS_TOKEN: ${{ secrets.SHOPIFY_APP_AUTOMATION_TOKEN }}
+        run: |
+          if [ -z "$SHOPIFY_CLI_PARTNERS_TOKEN" ]; then
+            echo "SHOPIFY_APP_AUTOMATION_TOKEN is NOT configured"
+            exit 1
+          else
+            echo "Shopify automation token is configured"
+          fi
+
       - name: Deploy Shopify App
         env:
-          SHOPIFY_CLI_PARTNERS_TOKEN: ${{ secrets.SHOPIFY_CLI_PARTNERS_TOKEN }}
+          SHOPIFY_CLI_PARTNERS_TOKEN: ${{ secrets.SHOPIFY_APP_AUTOMATION_TOKEN }}
         run: shopify app deploy --config development --allow-updates
