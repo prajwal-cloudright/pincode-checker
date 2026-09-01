@@ -1,0 +1,54 @@
+warning: in the working copy of 'shopify.app.toml', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/shopify.app.toml b/shopify.app.toml[m
+[1mindex ca7b82d..a012b6c 100644[m
+[1m--- a/shopify.app.toml[m
+[1m+++ b/shopify.app.toml[m
+[36m@@ -5,9 +5,27 @@[m [mname = "pincode checker"[m
+ application_url = "https://api.glomore.in"[m
+ embedded = true[m
+ [m
+[32m+[m[32m[build][m
+[32m+[m[32mautomatically_update_urls_on_dev = true[m
+[32m+[m
+[32m+[m[32m[webhooks][m
+[32m+[m[32mapi_version = "2026-10"[m
+[32m+[m
+[32m+[m[32m  [[webhooks.subscriptions]][m
+[32m+[m[32m  uri = "/webhooks/app/uninstalled"[m
+[32m+[m[32m  topics = [ "app/uninstalled" ][m
+[32m+[m
+[32m+[m[32m  [[webhooks.subscriptions]][m
+[32m+[m[32m  uri = "/webhooks/app/scopes_update"[m
+[32m+[m[32m  topics = [ "app/scopes_update" ][m
+[32m+[m
+ [access_scopes][m
+[32m+[m[32m# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes[m
+ scopes = "write_metaobject_definitions,write_metaobjects,write_products"[m
+ [m
+[32m+[m[32m[auth][m
+[32m+[m[32mredirect_urls = [ "https://api.glomore.in/api/auth" ][m
+[32m+[m
+ [product.metafields.app.demo_info][m
+ type = "single_line_text_field"[m
+ name = "Demo Source Info"[m
+[36m@@ -31,20 +49,3 @@[m [mrequired = true[m
+ [metaobjects.app.example.fields.description][m
+ name = "Description"[m
+ type = "multi_line_text_field"[m
+[31m-[m
+[31m-[webhooks][m
+[31m-api_version = "2026-10"[m
+[31m-[m
+[31m-  [[webhooks.subscriptions]][m
+[31m-  uri = "/webhooks/app/uninstalled"[m
+[31m-  topics = [ "app/uninstalled" ][m
+[31m-[m
+[31m-  [[webhooks.subscriptions]][m
+[31m-  uri = "/webhooks/app/scopes_update"[m
+[31m-  topics = [ "app/scopes_update" ][m
+[31m-[m
+[31m-[auth][m
+[31m-redirect_urls = [ "https://api.glomore.in/api/auth" ][m
+[31m-[m
+[31m-[build][m
+[31m-automatically_update_urls_on_dev = true[m
