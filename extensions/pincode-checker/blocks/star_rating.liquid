@@ -206,9 +206,7 @@ document.addEventListener("DOMContentLoaded", function () {
     try {
 
       /*
-       * The Shopify extension calls our AWS backend.
-       *
-       * It does NOT call India Post directly.
+       * Shopify extension calls our AWS backend.
        */
       const response = await fetch(
         "https://api.glomore.in/api/delivery?pincode=" +
@@ -234,13 +232,32 @@ document.addEventListener("DOMContentLoaded", function () {
         const delivery = apiData.data;
 
         /*
+         * Determine delivery availability.
+         *
+         * The backend currently returns values such as:
+         * "Delivery"
+         * "Non Delivery"
+         * "No Delivery"
+         * etc.
+         */
+        const deliveryStatus =
+          String(delivery.deliveryStatus || "").trim().toLowerCase();
+
+        const isDeliveryAvailable =
+          deliveryStatus === "delivery" ||
+          deliveryStatus === "available" ||
+          deliveryStatus === "delivery available";
+
+        /*
          * Display successful result
          */
         result.innerHTML = `
           <div class="delivery-result">
 
-            <div class="delivery-title success">
-              ✓ Delivery is Available
+            <div class="delivery-title ${isDeliveryAvailable ? "success" : "error"}">
+              ${isDeliveryAvailable
+                ? "✓ Delivery is Available"
+                : "✕ Delivery is Not Available"}
             </div>
 
             <div class="delivery-row">
@@ -285,11 +302,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
             <div class="delivery-row">
               <span class="delivery-label">
-                Delivery Availability
+                Delivery Status
               </span>
 
-              <span class="delivery-value success">
-                ${escapeHtml(delivery.deliveryStatus)}
+              <span class="delivery-value ${isDeliveryAvailable ? "success" : "error"}">
+                ${isDeliveryAvailable
+                  ? "Delivery Available"
+                  : "Delivery Not Available"}
               </span>
             </div>
 
