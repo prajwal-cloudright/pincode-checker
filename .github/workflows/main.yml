@@ -1,4 +1,3 @@
-```yaml
 name: Build and Deploy
 
 on:
@@ -13,7 +12,7 @@ jobs:
 
     steps:
 
-      # 1. Checkout the latest code from GitHub
+      # 1. Checkout the latest code
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -47,7 +46,7 @@ jobs:
           docker push \
             ${{ steps.login-ecr.outputs.registry }}/pincode-checker:latest
 
-      # 7. Deploy Docker image to EC2 using AWS Systems Manager
+      # 7. Deploy Docker image to EC2 using AWS SSM
       - name: Deploy Docker to EC2
         shell: bash
         run: |
@@ -91,7 +90,7 @@ jobs:
         run: |
           pnpm install --no-frozen-lockfile
 
-      # 11. Deploy Shopify app configuration and theme extensions
+      # 11. Deploy Shopify app and theme extensions
       - name: Deploy Shopify app and extensions
         env:
           SHOPIFY_APP_AUTOMATION_TOKEN: ${{ secrets.SHOPIFY_APP_AUTOMATION_TOKEN }}
@@ -110,4 +109,3 @@ jobs:
           echo "Theme extension deployment completed."
           echo "Commit: ${{ github.sha }}"
           echo "=========================================="
-```
