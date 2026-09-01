@@ -1,0 +1,113 @@
+```yaml
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    name: Build Docker and Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # 1. Checkout the latest code from GitHub
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Configure AWS credentials
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # 3. Login to Amazon ECR
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # 4. Build Docker image
+      - name: Build Docker image
+        run: |
+          docker build -t pincode-checker .
+
+      # 5. Tag Docker image
+      - name: Tag Docker image
+        run: |
+          docker tag pincode-checker:latest \
+            ${{ steps.login-ecr.outputs.registry }}/pincode-checker:latest
+
+      # 6. Push Docker image to ECR
+      - name: Push Docker image to ECR
+        run: |
+          docker push \
+            ${{ steps.login-ecr.outputs.registry }}/pincode-checker:latest
+
+      # 7. Deploy Docker image to EC2 using AWS Systems Manager
+      - name: Deploy Docker to EC2
+        shell: bash
+        run: |
+          COMMAND_ID=$(aws ssm send-command \
+            --region "${{ secrets.AWS_REGION }}" \
+            --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
+            --document-name "AWS-RunShellScript" \
+            --parameters 'commands=[
+              "aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}",
+              "docker pull ${{ steps.login-ecr.outputs.registry }}/pincode-checker:latest",
+              "docker stop pincode-checker || true",
+              "docker rm pincode-checker || true",
+              "docker run -d --name pincode-checker --env-file /home/ubuntu/pincode-checker.env -p 3000:3000 --restart unless-stopped ${{ steps.login-ecr.outputs.registry }}/pincode-checker:latest"
+            ]' \
+            --query "Command.CommandId" \
+            --output text)
+
+          echo "SSM Command ID: $COMMAND_ID"
+
+          aws ssm wait command-executed \
+            --region "${{ secrets.AWS_REGION }}" \
+            --command-id "$COMMAND_ID" \
+            --instance-id "${{ secrets.EC2_INSTANCE_ID }}"
+
+          echo "Docker deployment completed successfully."
+
+      # 8. Setup Node.js for Shopify CLI
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # 9. Enable pnpm
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@latest --activate
+
+      # 10. Install dependencies
+      - name: Install dependencies
+        run: |
+          pnpm install --no-frozen-lockfile
+
+      # 11. Deploy Shopify app configuration and theme extensions
+      - name: Deploy Shopify app and extensions
+        env:
+          SHOPIFY_APP_AUTOMATION_TOKEN: ${{ secrets.SHOPIFY_APP_AUTOMATION_TOKEN }}
+          COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
+        run: |
+          npx --yes @shopify/cli@latest app deploy \
+            --allow-updates \
+            --source-control-url "$COMMIT_URL"
+
+      # 12. Deployment completed
+      - name: Deployment complete
+        run: |
+          echo "=========================================="
+          echo "AWS Docker deployment completed."
+          echo "Shopify app deployment completed."
+          echo "Theme extension deployment completed."
+          echo "Commit: ${{ github.sha }}"
+          echo "=========================================="
+```
